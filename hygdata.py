@@ -96,7 +96,7 @@ def bv2rgb(bv):
         b = 0.0
     if bv == 'nan' or math.isnan(bv):
         g = 0.5
-    g /= 1.1
+    g /= 1.3
     return "rgb({0}, {1}, {2})".format(int(r*255),int(g*255),int(b*255))
     
 mainFunc()

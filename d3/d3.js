@@ -1,8 +1,9 @@
-var data = [];
+﻿var data = [];
 var svg;
 var min = -1.44;
-var threshold = 3,
-scale = 300;
+var threshold = 6,
+scale = 1000;
+var spectrals = {"O":"#9BB0FF","B":"#AABFFF","A":"#CAD8FF","F":"#FBF8FF","G":"#FFF4E8","K":"#FFDDB4","M":"#FFBD6F"};
 var lat,longtd;
 var time,date;
 var id = 0,
@@ -18,7 +19,9 @@ projection = d3.geo.orthographic()
 	.translate([width / 2, height / 2])
 	.clipAngle(90)
 	.rotate([rotate.x / 2, -rotate.y / 2]),
-path = d3.geo.path().projection(projection).pointRadius(2),
+path = d3.geo.path().projection(projection).pointRadius(function (d, i) {
+            return 3.0*((10 - d.brightness) / (10-min));
+		}),
 degrees = 180 / Math.PI,
 radius = projection([90, 0])[0] - projection([0, 0])[0];
 
@@ -35,20 +38,24 @@ function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(showPosition);
     } else {
-        window.alert("We need the geolocation for accurate mapping")
+        lat = 0;
+        longtd = 0;
+        init();
+        window.alert("We need the geolocation for accurate mapping");
     }
 }
 function showPosition(position) {
     console.log("Latitude: " + position.coords.latitude + 
     "<br>Longitude: " + position.coords.longitude); 
     lat = position.coords.latitude;
+	lat = lat/degrees;
     longtd = position.coords.longitude;
     init();
 }
 
 function getTime() {
     time = new Date();
-    console.log(time);
+    //console.log(time);
 }
 
 function init() {
@@ -90,7 +97,7 @@ function createSVG() {
 		.enter().append("path")
 		.attr("class", "point")
 		.style("opacity", function (d, i) {
-			return d.opacity;
+			return Math.sqrt(d.opacity);
 		})
 		.style("fill", function (d, i) {
 			return d.color;
@@ -100,6 +107,7 @@ function createSVG() {
 			console.log(d.color);
 			console.log(d.name);
             console.log(d.opacity);
+            console.log(d.spectral);
 		})
 
 		.append("title")
@@ -135,7 +143,7 @@ function getPlotPoints(ra,dec){
 	//mins = time%100;
 	mins = time.getUTCMinutes();
 	mins = mins/60;
-	console.log(hours,mins);
+	//console.log(hours,mins);
 	dec_frac = (hours+mins)/24;
 
 	// date = "10 Aug 1998";
@@ -160,7 +168,8 @@ function getPlotPoints(ra,dec){
 	if (lst < 0){
 		lst = 360 + lst ;
 	}
-	console.log(lst);
+    lst = lst%360;
+	//console.log(lst + " ra: " + ra + " dec: " + dec + " long" + longtd + " lat " + lat);
 	ha = lst - ra;
 	function toRadians (angle) {
 		return angle/180*Math.PI;
@@ -169,7 +178,6 @@ function getPlotPoints(ra,dec){
 		return angle*180/Math.PI;
 	}
 	dec = toRadians(dec);
-	lat = toRadians(lat);
 	ha = toRadians(ha);
 	sinalt = (Math.sin(dec)*Math.sin(lat))+(Math.cos(dec)*Math.cos(lat)*Math.cos(ha));
 	alt = Math.asin(sinalt);
@@ -196,13 +204,14 @@ function getData() {
 				type : "Point",
 				coordinates : getPlotPoints(data[i].ra,data[i].dec),
 				id : nextId(),
-				color : data[i].ci,
+                color : spectrals[data[i].spect[0]],
+				//color : data[i].ci,
 				opacity : ((threshold + 1) - data[i].mag) / (threshold-min),
-				name : data[i].proper
+                brightness :data[i].mag,
+				name : data[i].proper,
+                spectral : data[i].spect[0]
 			});
-		if (data[i].proper == "Polaris"){
-			console.log(getPlotPoints(data[i].ra,data[i].dec),data[i].proper);
-		}
+			//console.log(getPlotPoints(data[i].ra,data[i].dec),data[i].proper);
 		}
 	}
 	return function () {
