@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3 Test</title>
+		<script src="./d3/d3.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="button_styling.css">
+	</head>
+	<body>
+		<script type="text/javascript">
+				ra = 16.695;
+				dec = 36.466667;
+				time = 23.166667;
+				lat = 52.5;
+				longtd = -1.9166667;
+
+				ra = ra*15;
+				
+				days_to_beginning_of_month_nonleap = {"Jan":0,"Feb":31,"Mar":59,"Apr":90,"May":120,"Jun":151,"Jul":181,"Aug":212,"Sep":243,"Oct":273,"Nov":304,"Dec":334};
+
+				days_to_beginning_of_month_leap = {"Jan":0,"Feb":31,"Mar":60,"Apr":91,"May":121,"Jun":152,"Jul":182,"Aug":213,"Sep":244,"Oct":274,"Nov":305,"Dec":335};
+
+				days_since_j2000 = {"1998": -731.5, "1999": -366.6, "2000": -1.5, "2001": 364.5, "2002": 729.5, "2003": 1094.5, "2004": 1459.5, "2005": 1825.5, "2006": 2190.5, "2007": 2555.5, "2008": 2920.5, "2009": 3286.5, "2010": 3651.5, "2011": 4016.5, "2012": 4381.5, "2013": 4747.5, "2014": 5112.5, "2015": 5477.5, "2016": 5842.5, "2017": 6208.5, "2018": 6573.5, "2019": 6938.5, "2020": 7303.5, "2021":7669.5};
+
+				//
+
+				time = 2310;
+				hours = Math.floor(time/100);
+				mins = time%100;
+				mins = mins/60;
+				dec_frac = (hours+mins)/24;
+
+				date = "10 Aug 1998";
+				arr = date.split(" ");
+				year = arr[2];
+				month = arr[1];
+				day = arr[0];
+				days_to_beginning_year = days_since_j2000[year];
+				if (year%4!=0){
+					days_to_beginning_month = days_to_beginning_of_month_nonleap[month];
+				}
+				if (year%4==0){
+					days_to_beginning_month = days_to_beginning_of_month_leap[month]
+				}
+
+				d = dec_frac + days_to_beginning_month + parseInt(day) + days_to_beginning_year
+				lst = 100.46 + 0.985647*d + longtd + 15*(hours+mins)
+				if (lst < 0){
+					lst = 360 + lst ;
+				}
+				ha = lst - ra;
+				function toRadians (angle) {
+					return angle/180*Math.PI;
+				}
+				function toDegrees (angle) {
+					return angle*180/Math.PI;
+				}
+				dec = toRadians(dec);
+				lat = toRadians(lat);
+				ha = toRadians(ha);
+				sinalt = (Math.sin(dec)*Math.sin(lat))+(Math.cos(dec)*Math.cos(lat)*Math.cos(ha));
+				alt = Math.asin(sinalt);
+				cosA = (Math.sin(dec) - Math.sin(alt)*Math.sin(lat)) / (Math.cos(alt) * Math.cos(lat));
+				a = Math.acos(cosA);
+				a = toDegrees(a);
+				alt = toDegrees(alt);
+
+				if (Math.sin(ha) < 0){
+					az = a;
+				}
+				if (Math.sin(ha) >= 0){
+					az = 360 - a;
+				}
+				console.log(az,alt);
+		</script>
+	</body>
